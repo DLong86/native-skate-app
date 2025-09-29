@@ -1,24 +1,29 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import "react-native-reanimated";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { View } from "react-native";
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+	anchor: "(tabs)",
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+	const colorScheme = useColorScheme();
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+	const [fontsLoaded] = useFonts({
+		PressStart2P: require("../assets/fonts/PressStart2P.ttf"),
+		Tiny5: require("../assets/fonts/Tiny5.ttf"),
+	});
+
+	if (!fontsLoaded) return <View />;
+
+	return (
+		<Stack
+			screenOptions={{
+				headerShown: false, // 🚀 hide the header everywhere
+			}}
+		/>
+	);
 }
