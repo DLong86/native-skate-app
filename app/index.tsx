@@ -1,84 +1,33 @@
-import Checkerboard from "@/components/Checkerboard";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { beginnerTricks, mediumTricks, proTricks } from "../data/trickLists";
+import { StatusBar } from "expo-status-bar";
+import React from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function StartScreen() {
 	const router = useRouter();
 
-	const [step, setStep] = useState<"difficulty" | "level">("difficulty");
-	const [difficulty, setDifficulty] = useState<string | null>(null);
-
-	const handleSelectDifficulty = (diff: string) => {
-		setDifficulty(diff);
-		setStep("level");
-	};
-
-	const handleSelectLevel = (level: string) => {
-		router.push({
-			pathname: "/game",
-			params: { difficulty, level },
-		});
-	};
-
-	const levelOptions = [
-		{ name: "Beginner", tricks: beginnerTricks },
-		{ name: "Medium", tricks: mediumTricks },
-		{ name: "Pro", tricks: proTricks },
-	];
-
 	return (
 		<View style={styles.container}>
-			{/* Checkerboard background */}
-			<Checkerboard size={32} />
+			{/* <Checkerboard size={32} /> */}
+			<StatusBar style="light" />
+			<Image
+				source={require("../assets/images/skate-logo2.png")}
+				style={styles.logo}
+			/>
 
-			{/* Title box */}
-			<View style={styles.titleBox}>
-				<Text style={styles.titleText}>GAME of SKATE</Text>
-			</View>
+			<TouchableOpacity
+				style={styles.button}
+				onPress={() => router.push("/difficulty")}
+			>
+				<Text style={styles.buttonText}>Start Game</Text>
+			</TouchableOpacity>
 
-			{step === "difficulty" && (
-				<>
-					<Text style={styles.subtitle}>Choose Difficulty</Text>
-
-					<TouchableOpacity
-						style={styles.button}
-						onPress={() => handleSelectDifficulty("easy")}
-					>
-						<Text style={styles.buttonText}>Easy</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						style={styles.button}
-						onPress={() => handleSelectDifficulty("medium")}
-					>
-						<Text style={styles.buttonText}>Medium</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						style={styles.button}
-						onPress={() => handleSelectDifficulty("hard")}
-					>
-						<Text style={styles.buttonText}>Hard</Text>
-					</TouchableOpacity>
-				</>
-			)}
-
-			{step === "level" && (
-				<>
-					<Text style={styles.subtitle}>Choose Trick Level</Text>
-					{levelOptions.map((level) => (
-						<TouchableOpacity
-							key={level.name}
-							style={styles.button}
-							onPress={() => handleSelectLevel(level.name.toLowerCase())}
-						>
-							<Text style={styles.buttonText}>{level.name}</Text>
-						</TouchableOpacity>
-					))}
-				</>
-			)}
+			<TouchableOpacity
+				style={styles.button}
+				// onPress={() => router.push("/stats")}
+			>
+				<Text style={styles.buttonText}>User Stats</Text>
+			</TouchableOpacity>
 		</View>
 	);
 }
@@ -88,23 +37,41 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
+		backgroundColor: "#222",
+	},
+
+	logo: {
+		// fontFamily: "RetroPixel",
+		// fontSize: 36,
+		// fontWeight: "bold",
+		// textShadowColor: "#222", // outline color
+		// textShadowOffset: { width: 2, height: 2 },
+		// textShadowRadius: 1,
+		// color: "#FF69B4",
+		// width: 300,
+		// height: 150,
+		// borderWidth: 4,
+		// borderColor: "#fff",
+		// borderRadius: 5,
+		marginBottom: 20,
 	},
 	titleBox: {
-		backgroundColor: "#222",
-		borderWidth: 4,
-		borderColor: "#fff",
+		// backgroundColor: "#ffc278ff",
+		// borderWidth: 4,
+		// borderColor: "#222",
 		padding: 16,
 		marginBottom: 20,
-		borderRadius: 5,
+		// borderRadius: 5,
 	},
 	titleText: {
-		fontFamily: "Tiny5",
-		fontSize: 32,
+		fontFamily: "RetroPixel",
+		fontSize: 36,
 		fontWeight: "bold",
-		textShadowColor: "#000", // outline color
+		textShadowColor: "#222", // outline color
 		textShadowOffset: { width: 2, height: 2 },
 		textShadowRadius: 1,
-		color: "#fff",
+		color: "#FF69B4",
+		// marginBottom: 28,
 	},
 	subtitle: {
 		fontFamily: "PressStart2P",
@@ -116,6 +83,7 @@ const styles = StyleSheet.create({
 		borderColor: "#fff",
 		padding: 12,
 		borderRadius: 5,
+		textTransform: "uppercase",
 	},
 	button: {
 		backgroundColor: "#222",

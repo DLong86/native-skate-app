@@ -1,12 +1,11 @@
 import React from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 
-const Checkerboard = ({ size = 32 }) => {
+const Checkerboard = ({ size = 32, colors = ["#a8dadc", "#cdeac0"] }) => {
 	const { width, height } = Dimensions.get("window");
 
 	const rows = Math.ceil(height / size);
 	const cols = Math.ceil(width / size);
-	const colors = ["#a8dadc", "#cdeac0"]; // pastel blue + mint
 
 	return (
 		<View style={StyleSheet.absoluteFill}>

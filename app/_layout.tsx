@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 
 export const unstable_settings = {
@@ -15,15 +16,19 @@ export default function RootLayout() {
 	const [fontsLoaded] = useFonts({
 		PressStart2P: require("../assets/fonts/PressStart2P.ttf"),
 		Tiny5: require("../assets/fonts/Tiny5.ttf"),
+		RetroPixel: require("../assets/fonts/RetroPixel.otf"),
 	});
 
 	if (!fontsLoaded) return <View />;
 
 	return (
-		<Stack
-			screenOptions={{
-				headerShown: false, // 🚀 hide the header everywhere
-			}}
-		/>
+		<>
+			<StatusBar style="dark" />
+			<Stack
+				screenOptions={{
+					headerShown: false, // 🚀 hide the header everywhere
+				}}
+			/>
+		</>
 	);
 }
