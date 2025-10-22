@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import { opponents } from "@/data/opponents";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
 	Image,
 	ImageBackground,
@@ -22,7 +22,7 @@ export default function GameScreen() {
 	const [playerLetters, setPlayerLetters] = useState(["S", "K", "A", "T", "E"]);
 	const [currentTrick, setCurrentTrick] = useState("Kickflip");
 	const [isSettingTrick, setIsSettingTrick] = useState(true);
-	const [turn, setTurn] = useState<"player" | "opponent">("player");
+	const [turn, setTurn] = useState<string | null>(null);
 	const [result, setResult] = useState("");
 
 	const router = useRouter();
@@ -31,11 +31,12 @@ export default function GameScreen() {
 		difficulty = "medium",
 		level = "1",
 		opponent: opponentId,
+		starter,
 	} = useLocalSearchParams() as {
 		difficulty?: string;
 		level?: string;
 		opponent?: string;
-		//   starter?: Starter;
+		starter?: string;
 	};
 	// find opponent
 	const opponentData = useMemo(
@@ -45,6 +46,10 @@ export default function GameScreen() {
 	const opponentName = opponentData.name ?? "Opponent";
 	const opponentAvatar = opponentData.avatar ?? "";
 
+	useEffect(() => {
+		setTurn(starter === "player" ? "player" : "opponent");
+	}, [starter]);
+
 	const handleStance = (stance: string) => {
 		console.log("Stance: ", stance);
 	};
@@ -53,22 +58,37 @@ export default function GameScreen() {
 		<ImageBackground
 			source={require("../assets/images/earthbound-background2.jpg")}
 			style={styles.background}
-			resizeMode="cover"
+			// resizeMode="contain"
 		>
 			<Header />
 
 			{/* TOP: Opponent bar */}
-			<View style={styles.opponentSection}>
+			<View
+				style={[
+					styles.opponentSection,
+					turn !== "opponent" && styles.inactiveSection,
+				]}
+			>
 				<View style={styles.opponent}>
 					<Image source={opponentAvatar} />
 					<Text style={styles.opponentName}>{opponentName}</Text>
 				</View>
 				<View style={styles.lettersRow}>
-					{opponentLetters.map((letter, i) => (
-						<View key={i} style={[styles.tile, i < 2 && styles.tileActive]}>
-							<Text style={styles.tileText}>{letter}</Text>
-						</View>
-					))}
+					{opponentLetters.map((letter, i) => {
+						const isActive = i < 2;
+						return (
+							<View
+								key={i}
+								style={[styles.tile, isActive && styles.tileActive]}
+							>
+								<Text
+									style={[styles.tileText, isActive && styles.tileTextActive]}
+								>
+									{letter}
+								</Text>
+							</View>
+						);
+					})}
 				</View>
 			</View>
 
@@ -79,13 +99,28 @@ export default function GameScreen() {
 			</View>
 
 			{/* Player section */}
-			<View style={styles.playerSection}>
+			<View
+				style={[
+					styles.playerSection,
+					turn !== "player" && styles.inactiveSection,
+				]}
+			>
 				<View style={styles.lettersRow}>
-					{playerLetters.map((letter, i) => (
-						<View key={i} style={[styles.tile, i < 1 && styles.tileActive]}>
-							<Text style={styles.tileText}>{letter}</Text>
-						</View>
-					))}
+					{playerLetters.map((letter, i) => {
+						const isActive = i < 1; // change based on progress later
+						return (
+							<View
+								key={i}
+								style={[styles.tile, isActive && styles.tileActive]}
+							>
+								<Text
+									style={[styles.tileText, isActive && styles.tileTextActive]}
+								>
+									{letter}
+								</Text>
+							</View>
+						);
+					})}
 				</View>
 				{isSettingTrick && (
 					<View style={styles.buttonRow}>
@@ -94,6 +129,7 @@ export default function GameScreen() {
 								key={stance}
 								style={styles.button}
 								onPress={() => handleStance(stance)}
+								disabled={turn !== "player"}
 							>
 								<Text style={styles.buttonText}>{stance}</Text>
 							</TouchableOpacity>
@@ -147,21 +183,25 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderColor: "#fff",
 		borderRadius: 5,
-		backgroundColor: "rgba(255,255,255,0.1)",
+		backgroundColor: "#000",
 		justifyContent: "center",
 		alignItems: "center",
 		marginVertical: 8,
+		color: "#fff",
 	},
 
 	tileText: {
-		color: "#bbb",
 		fontWeight: "bold",
 		fontSize: 18,
 		fontFamily: "PressStart2P",
+		color: "#fff",
+		opacity: 0.1,
+	},
+	tileTextActive: {
+		opacity: 1,
 	},
 	tileActive: {
 		backgroundColor: "rgba(0,0,0,0.6)",
-		color: "#fff",
 	},
 	trickSection: {
 		alignItems: "center",
@@ -208,5 +248,10 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		fontFamily: "PressStart2P",
 		fontSize: 10,
+	},
+
+	inactiveSection: {
+		opacity: 0.6,
+		transform: [{ scale: 0.98 }],
 	},
 });

@@ -61,7 +61,6 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		flexWrap: "wrap",
 		justifyContent: "center",
-		gap: 16,
 	},
 	card: {
 		alignItems: "center",

@@ -50,7 +50,7 @@ export default function PreGame() {
 				difficulty,
 				level,
 				opponent,
-				starter: result?.includes("You") ? "player" : "opponent",
+				starter: result?.includes("You win") ? "player" : "opponent",
 			},
 		});
 	};

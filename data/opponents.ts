@@ -11,7 +11,7 @@ export const opponents = [
 	},
 	{
 		id: "3",
-		name: "Nigel",
+		name: "Tony Trickster",
 		avatar: require("../assets/avatars/avatar-2.png"),
 	},
 	{
@@ -21,7 +21,7 @@ export const opponents = [
 	},
 	{
 		id: "5",
-		name: "Bert the Beast",
+		name: "Bertie Beast",
 		avatar: require("../assets/avatars/avatar-3.png"),
 	},
 	{
