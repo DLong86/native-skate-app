@@ -24,6 +24,8 @@ export default function GameScreen() {
 	const [isSettingTrick, setIsSettingTrick] = useState(true);
 	const [turn, setTurn] = useState<string | null>(null);
 	const [result, setResult] = useState("");
+	const [isOpponentSetting, setIsOpponentSetting] = useState(false);
+	const [opponentLanded, setOpponentLanded] = useState(false);
 
 	const router = useRouter();
 
@@ -50,8 +52,68 @@ export default function GameScreen() {
 		setTurn(starter === "player" ? "player" : "opponent");
 	}, [starter]);
 
+	useEffect(() => {
+		if (turn === "opponent") {
+			setResult(`${opponentName} is setting up for a...`);
+			setCurrentTrick("");
+
+			//  Show ste up message 1st
+			const setupTimeout = setTimeout(() => {
+				// choose random trick ----- !!! LATER from the trick list !!!! -----
+				const tricks = ["Kickflip", "Fs 180", "Heelflip", "Nollie Bs 180"];
+				const randomTrick = tricks[Math.floor(Math.random() * tricks.length)];
+				setCurrentTrick(randomTrick);
+
+				//  wait 2 seconds again then landed or bailed...
+				const resultTimeout = setTimeout(() => {
+					const landed = Math.random() < 0.6;
+					if (landed) {
+						setOpponentLanded(true);
+						setResult("Make!");
+						setCurrentTrick("");
+
+						// Switch to players turn
+						setTimeout(() => {
+							setTurn("player");
+						}, 1000);
+					} else {
+						setOpponentLanded(false);
+						setResult("Bailed!");
+						setCurrentTrick("");
+
+						// hand turn back to player
+						setTimeout(() => {
+							setTurn("player");
+							setIsSettingTrick(true);
+							setResult("");
+							setCurrentTrick("");
+						}, 3000);
+					}
+				}, 3000);
+
+				return () => clearTimeout(resultTimeout);
+			}, 2000);
+			return () => clearTimeout(setupTimeout);
+		}
+	}, [turn]);
+
 	const handleStance = (stance: string) => {
 		console.log("Stance: ", stance);
+	};
+
+	const handlePlayerResponse = (choice: string) => {
+		console.log(`Player chose ${choice}`);
+		// Player gets letter
+		if (choice === "Bail") {
+			console.log("Player gets letter!!!");
+		} else {
+			console.log("Player landed");
+		}
+
+		setResult("");
+		setTurn("opponent");
+		setIsSettingTrick(false);
+		setOpponentLanded(false);
 	};
 
 	return (
@@ -94,8 +156,10 @@ export default function GameScreen() {
 
 			{/* Trick Display */}
 			<View style={styles.trickSection}>
-				<Text style={styles.trickText}>{currentTrick}</Text>
-				<Text style={styles.resultText}>Opponent Bailed!</Text>
+				<Text style={styles.resultText}>{result}</Text>
+				{currentTrick ? (
+					<Text style={styles.trickText}>{currentTrick}</Text>
+				) : null}
 			</View>
 
 			{/* Player section */}
@@ -122,7 +186,7 @@ export default function GameScreen() {
 						);
 					})}
 				</View>
-				{isSettingTrick && (
+				{/* {isSettingTrick && (
 					<View style={styles.buttonRow}>
 						{["Normal", "Fakie", "Nollie", "Switch"].map((stance) => (
 							<TouchableOpacity
@@ -134,6 +198,30 @@ export default function GameScreen() {
 								<Text style={styles.buttonText}>{stance}</Text>
 							</TouchableOpacity>
 						))}
+					</View>
+				)} */}
+				{turn === "player" && (
+					<View style={styles.buttonRow}>
+						{opponentLanded
+							? ["Make", "Bail"].map((result) => (
+									<TouchableOpacity
+										key={result}
+										style={styles.button}
+										onPress={() => handlePlayerResponse(result)}
+									>
+										<Text style={styles.buttonText}>{result}</Text>
+									</TouchableOpacity>
+							  ))
+							: isSettingTrick &&
+							  ["Normal", "Fakie", "Nollie", "Switch"].map((stance) => (
+									<TouchableOpacity
+										key={stance}
+										style={styles.button}
+										onPress={() => handleStance(stance)}
+									>
+										<Text style={styles.buttonText}>{stance}</Text>
+									</TouchableOpacity>
+							  ))}
 					</View>
 				)}
 			</View>
@@ -205,6 +293,7 @@ const styles = StyleSheet.create({
 	},
 	trickSection: {
 		alignItems: "center",
+		alignContent: "center",
 	},
 	trickText: {
 		fontSize: 36,
@@ -212,12 +301,17 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		marginBottom: 8,
 		fontFamily: "PressStart2P",
+		textAlign: "center",
 	},
 
 	resultText: {
 		fontSize: 18,
 		color: "#fffa",
 		fontFamily: "PressStart2P",
+		marginBottom: 12,
+		alignItems: "center",
+		paddingHorizontal: 8,
+		textAlign: "center",
 	},
 	playerSection: {
 		// marginTop: 50,
