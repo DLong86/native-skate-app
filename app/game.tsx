@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import TrickModal from "@/components/TrickModal";
 import { opponents } from "@/data/opponents";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -12,6 +13,7 @@ import {
 } from "react-native";
 
 export default function GameScreen() {
+	const [showModal, setShowModal] = useState(false);
 	const [opponentLetters, setOpponentLetters] = useState([
 		"S",
 		"K",
@@ -26,6 +28,7 @@ export default function GameScreen() {
 	const [result, setResult] = useState("");
 	const [isOpponentSetting, setIsOpponentSetting] = useState(false);
 	const [opponentLanded, setOpponentLanded] = useState(false);
+	const [selectedStance, setSelectedStance] = useState<string | undefined>();
 
 	const router = useRouter();
 
@@ -98,7 +101,8 @@ export default function GameScreen() {
 	}, [turn]);
 
 	const handleStance = (stance: string) => {
-		console.log("Stance: ", stance);
+		setSelectedStance(stance);
+		setShowModal(true);
 	};
 
 	const handlePlayerResponse = (choice: string) => {
@@ -225,6 +229,16 @@ export default function GameScreen() {
 					</View>
 				)}
 			</View>
+			<TrickModal
+				visible={showModal}
+				onClose={() => setShowModal(false)}
+				stance={selectedStance}
+				onSelectTrick={(trickName: string) => {
+					setCurrentTrick(`${selectedStance} ${trickName}`);
+					setIsSettingTrick(false);
+					setShowModal(false);
+				}}
+			/>
 		</ImageBackground>
 	);
 }
