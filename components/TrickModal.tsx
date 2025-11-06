@@ -1,3 +1,4 @@
+import { allTricks } from "@/data/trickLists";
 import React from "react";
 import {
 	FlatList,
@@ -19,13 +20,24 @@ const TrickModal = ({
 	onSelectTrick?: (trick: string) => void;
 	stance?: string;
 }) => {
-	const tricks = [
-		"Kickflip",
-		"Heelflip",
-		"Shuvit",
-		"360 Flip",
-		"Varial Kickflip",
-	];
+	// const tricks = [
+	// 	"Kickflip",
+	// 	"Heelflip",
+	// 	"Shuvit",
+	// 	"360 Flip",
+	// 	"Varial Kickflip",
+	// ];
+
+	const filteredTricks = allTricks.filter((trick) => {
+		if (!stance) return false;
+		if (!trick.stances) return false;
+		// Normalise all to arrays for safety???
+		const stancesArray = Array.isArray(trick.stances)
+			? trick.stances
+			: [trick.stances];
+
+		return stancesArray.includes(stance);
+	});
 
 	return (
 		<Modal visible={visible} transparent animationType="fade">
@@ -33,7 +45,7 @@ const TrickModal = ({
 				<View style={styles.modalContent}>
 					<Text style={styles.modalTitle}>Select a Trick</Text>
 					<FlatList
-						data={tricks}
+						data={filteredTricks.map((trick) => trick.name)}
 						keyExtractor={(item) => item}
 						renderItem={({ item }) => (
 							<TouchableOpacity
@@ -104,7 +116,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		backgroundColor: "#00ffe0",
-		borderRadius: 15,
+		borderRadius: 5,
 		paddingVertical: 10,
 		marginTop: 15,
 	},
