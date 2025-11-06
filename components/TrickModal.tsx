@@ -17,17 +17,9 @@ const TrickModal = ({
 }: {
 	visible: boolean;
 	onClose: () => void;
-	onSelectTrick?: (trick: string) => void;
+	onSelectTrick: (trick: string) => void;
 	stance?: string;
 }) => {
-	// const tricks = [
-	// 	"Kickflip",
-	// 	"Heelflip",
-	// 	"Shuvit",
-	// 	"360 Flip",
-	// 	"Varial Kickflip",
-	// ];
-
 	const filteredTricks = allTricks.filter((trick) => {
 		if (!stance) return false;
 		if (!trick.stances) return false;
@@ -50,7 +42,7 @@ const TrickModal = ({
 						renderItem={({ item }) => (
 							<TouchableOpacity
 								style={styles.trickButton}
-								// onPress={() => onSelectTrick(item)}
+								onPress={() => onSelectTrick(item)}
 							>
 								<Text style={styles.trickText}>{item}</Text>
 							</TouchableOpacity>

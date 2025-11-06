@@ -29,6 +29,7 @@ export default function GameScreen() {
 	const [isOpponentSetting, setIsOpponentSetting] = useState(false);
 	const [opponentLanded, setOpponentLanded] = useState(false);
 	const [selectedStance, setSelectedStance] = useState<string | undefined>();
+	const [selectedTrick, setSelectedTrick] = useState<string | null>(null);
 
 	const router = useRouter();
 
@@ -118,6 +119,13 @@ export default function GameScreen() {
 		setTurn("opponent");
 		setIsSettingTrick(false);
 		setOpponentLanded(false);
+	};
+
+	const handleSelectTrick = (trickName: string) => {
+		setSelectedTrick(trickName);
+		setShowModal(false);
+
+		console.log(`Selected ${selectedStance} - ${trickName}`);
 	};
 
 	return (
@@ -233,11 +241,7 @@ export default function GameScreen() {
 				visible={showModal}
 				onClose={() => setShowModal(false)}
 				stance={selectedStance}
-				onSelectTrick={(trickName: string) => {
-					setCurrentTrick(`${selectedStance} ${trickName}`);
-					setIsSettingTrick(false);
-					setShowModal(false);
-				}}
+				onSelectTrick={handleSelectTrick}
 			/>
 		</ImageBackground>
 	);
