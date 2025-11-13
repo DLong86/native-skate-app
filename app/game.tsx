@@ -1,16 +1,12 @@
 import Header from "@/components/Header";
+import OpponentSection from "@/components/OpponentSection";
+import PlayerSection from "@/components/PlayerSection";
+import TrickDisplay from "@/components/TrickDisplay";
 import TrickModal from "@/components/TrickModal";
 import { opponents } from "@/data/opponents";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-	Image,
-	ImageBackground,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
-} from "react-native";
+import { ImageBackground, StyleSheet } from "react-native";
 
 export default function GameScreen() {
 	const [showModal, setShowModal] = useState(false);
@@ -135,108 +131,24 @@ export default function GameScreen() {
 			// resizeMode="contain"
 		>
 			<Header />
+			<OpponentSection
+				opponentName={opponentName}
+				avatar={opponentAvatar}
+				letters={opponentLetters}
+				active={turn === "opponent"}
+			/>
 
-			{/* TOP: Opponent bar */}
-			<View
-				style={[
-					styles.opponentSection,
-					turn !== "opponent" && styles.inactiveSection,
-				]}
-			>
-				<View style={styles.opponent}>
-					<Image source={opponentAvatar} />
-					<Text style={styles.opponentName}>{opponentName}</Text>
-				</View>
-				<View style={styles.lettersRow}>
-					{opponentLetters.map((letter, i) => {
-						const isActive = i < 2;
-						return (
-							<View
-								key={i}
-								style={[styles.tile, isActive && styles.tileActive]}
-							>
-								<Text
-									style={[styles.tileText, isActive && styles.tileTextActive]}
-								>
-									{letter}
-								</Text>
-							</View>
-						);
-					})}
-				</View>
-			</View>
+			<TrickDisplay currentTrick={currentTrick} result={result} />
 
-			{/* Trick Display */}
-			<View style={styles.trickSection}>
-				<Text style={styles.resultText}>{result}</Text>
-				{currentTrick ? (
-					<Text style={styles.trickText}>{currentTrick}</Text>
-				) : null}
-			</View>
+			<PlayerSection
+				letters={playerLetters}
+				active={turn === "player"}
+				opponentLanded={opponentLanded}
+				isSettingTrick={isSettingTrick}
+				onStanceSelect={handleStance}
+				onPlayerResponse={handlePlayerResponse}
+			/>
 
-			{/* Player section */}
-			<View
-				style={[
-					styles.playerSection,
-					turn !== "player" && styles.inactiveSection,
-				]}
-			>
-				<View style={styles.lettersRow}>
-					{playerLetters.map((letter, i) => {
-						const isActive = i < 1; // change based on progress later
-						return (
-							<View
-								key={i}
-								style={[styles.tile, isActive && styles.tileActive]}
-							>
-								<Text
-									style={[styles.tileText, isActive && styles.tileTextActive]}
-								>
-									{letter}
-								</Text>
-							</View>
-						);
-					})}
-				</View>
-				{/* {isSettingTrick && (
-					<View style={styles.buttonRow}>
-						{["Normal", "Fakie", "Nollie", "Switch"].map((stance) => (
-							<TouchableOpacity
-								key={stance}
-								style={styles.button}
-								onPress={() => handleStance(stance)}
-								disabled={turn !== "player"}
-							>
-								<Text style={styles.buttonText}>{stance}</Text>
-							</TouchableOpacity>
-						))}
-					</View>
-				)} */}
-				{turn === "player" && (
-					<View style={styles.buttonRow}>
-						{opponentLanded
-							? ["Make", "Bail"].map((result) => (
-									<TouchableOpacity
-										key={result}
-										style={styles.button}
-										onPress={() => handlePlayerResponse(result)}
-									>
-										<Text style={styles.buttonText}>{result}</Text>
-									</TouchableOpacity>
-							  ))
-							: isSettingTrick &&
-							  ["Normal", "Fakie", "Nollie", "Switch"].map((stance) => (
-									<TouchableOpacity
-										key={stance}
-										style={styles.button}
-										onPress={() => handleStance(stance)}
-									>
-										<Text style={styles.buttonText}>{stance}</Text>
-									</TouchableOpacity>
-							  ))}
-					</View>
-				)}
-			</View>
 			<TrickModal
 				visible={showModal}
 				onClose={() => setShowModal(false)}
@@ -253,117 +165,5 @@ const styles = StyleSheet.create({
 		padding: 10,
 		paddingTop: 20,
 		justifyContent: "space-between",
-	},
-	opponentSection: {
-		// alignItems: "center",
-		marginTop: 50,
-		backgroundColor: "#222",
-		borderWidth: 3,
-		borderColor: "#fff",
-		borderRadius: 5,
-		paddingHorizontal: 2,
-	},
-	opponent: {
-		flexDirection: "row",
-		alignItems: "center",
-		paddingHorizontal: 2,
-		marginTop: 2,
-		marginBottom: 8,
-		gap: 4,
-	},
-	opponentName: {
-		fontFamily: "PressStart2P",
-		fontSize: 14,
-		color: "#fff",
-	},
-	lettersRow: {
-		flexDirection: "row",
-		gap: 8,
-		alignItems: "center",
-		alignContent: "center",
-		margin: "auto",
-	},
-	tile: {
-		width: 50,
-		height: 50,
-		borderWidth: 2,
-		borderColor: "#fff",
-		borderRadius: 5,
-		backgroundColor: "#000",
-		justifyContent: "center",
-		alignItems: "center",
-		marginVertical: 8,
-		color: "#fff",
-	},
-
-	tileText: {
-		fontWeight: "bold",
-		fontSize: 18,
-		fontFamily: "PressStart2P",
-		color: "#fff",
-		opacity: 0.1,
-	},
-	tileTextActive: {
-		opacity: 1,
-	},
-	tileActive: {
-		backgroundColor: "rgba(0,0,0,0.6)",
-	},
-	trickSection: {
-		alignItems: "center",
-		alignContent: "center",
-	},
-	trickText: {
-		fontSize: 36,
-		fontWeight: "bold",
-		color: "#fff",
-		marginBottom: 8,
-		fontFamily: "PressStart2P",
-		textAlign: "center",
-	},
-
-	resultText: {
-		fontSize: 18,
-		color: "#fffa",
-		fontFamily: "PressStart2P",
-		marginBottom: 12,
-		alignItems: "center",
-		paddingHorizontal: 8,
-		textAlign: "center",
-	},
-	playerSection: {
-		// marginTop: 50,
-		backgroundColor: "#222",
-		borderWidth: 3,
-		borderColor: "#fff",
-		borderRadius: 5,
-		paddingHorizontal: 10,
-		marginBottom: 40,
-	},
-	buttonRow: {
-		flexDirection: "row",
-		// marginTop: 20,
-		justifyContent: "space-between",
-		gap: 4,
-		paddingVertical: 12,
-	},
-	button: {
-		backgroundColor: "#222",
-		paddingVertical: 10,
-		paddingHorizontal: 6,
-		borderWidth: 3,
-		borderColor: "#fff",
-		borderRadius: 5,
-	},
-	buttonText: {
-		color: "#fff",
-		fontWeight: "bold",
-		fontFamily: "PressStart2P",
-		fontSize: 10,
-	},
-
-	inactiveSection: {
-		opacity: 0.6,
-		transform: [{ scale: 0.98 }],
 	},
 });
