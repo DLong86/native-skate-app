@@ -18,7 +18,7 @@
 
 ## UI Polish
 
-- [ ] NOT SURE I ACTUALLY LIKE THIS SEARTHBOUND STYLE --- MAYBE CHANGE???
+- [ ] NOT SURE I ACTUALLY LIKE THIS EARTHBOUND STYLE --- MAYBE CHANGE???
 - [x] Background image + layout
 - [ ] Animate TrickModal appearance/disappearance
 - [ ] Add Earthbound-style typewriter text back later

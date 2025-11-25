@@ -4,20 +4,15 @@ import PlayerSection from "@/components/PlayerSection";
 import TrickDisplay from "@/components/TrickDisplay";
 import TrickModal from "@/components/TrickModal";
 import { opponents } from "@/data/opponents";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { beginnerTricks, mediumTricks, proTricks } from "@/data/trickLists";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { ImageBackground, StyleSheet } from "react-native";
 
 export default function GameScreen() {
 	const [showModal, setShowModal] = useState(false);
-	const [opponentLetters, setOpponentLetters] = useState([
-		"S",
-		"K",
-		"A",
-		"T",
-		"E",
-	]);
-	const [playerLetters, setPlayerLetters] = useState(["S", "K", "A", "T", "E"]);
+	const [playerLetters, setPlayerLetters] = useState<string[]>([]);
+	const [opponentLetters, setOpponentLetters] = useState<string[]>([]);
 	const [currentTrick, setCurrentTrick] = useState("Kickflip");
 	const [isSettingTrick, setIsSettingTrick] = useState(true);
 	const [turn, setTurn] = useState<string | null>(null);
@@ -27,11 +22,17 @@ export default function GameScreen() {
 	const [selectedStance, setSelectedStance] = useState<string | undefined>();
 	const [selectedTrick, setSelectedTrick] = useState<string | null>(null);
 
-	const router = useRouter();
+	const SKATE = ["S", "K", "A", "T", "E"];
+
+	const giveLetter = (currentLetters: string[]) => {
+		const nextIndex = currentLetters.length;
+
+		return [...currentLetters, SKATE[nextIndex]];
+	};
 
 	const {
 		difficulty = "medium",
-		level = "1",
+		level: levelParam = "beginner",
 		opponent: opponentId,
 		starter,
 	} = useLocalSearchParams() as {
@@ -40,6 +41,22 @@ export default function GameScreen() {
 		opponent?: string;
 		starter?: string;
 	};
+
+	const level = levelParam.toLowerCase();
+
+	const trickPool = useMemo(() => {
+		switch (level) {
+			case "beginner":
+				return beginnerTricks;
+			case "medium":
+				return mediumTricks;
+			case "pro":
+				return proTricks;
+			default:
+				return [];
+		}
+	}, [level]);
+
 	// find opponent
 	const opponentData = useMemo(
 		() => opponents.find((o) => o.id === opponentId) ?? opponents[0],
@@ -54,34 +71,51 @@ export default function GameScreen() {
 
 	useEffect(() => {
 		if (turn === "opponent") {
+			// show the setup message
 			setResult(`${opponentName} is setting up for a...`);
-			setCurrentTrick("");
+			setCurrentTrick(""); // clear any previous trick
 
-			//  Show ste up message 1st
+			// wait 2 seconds before showing trick
 			const setupTimeout = setTimeout(() => {
-				// choose random trick ----- !!! LATER from the trick list !!!! -----
-				const tricks = ["Kickflip", "Fs 180", "Heelflip", "Nollie Bs 180"];
-				const randomTrick = tricks[Math.floor(Math.random() * tricks.length)];
-				setCurrentTrick(randomTrick);
+				// SELECT TRICK + STANCE
+				const randomTrick =
+					trickPool[Math.floor(Math.random() * trickPool.length)];
 
-				//  wait 2 seconds again then landed or bailed...
+				const stances = Array.isArray(randomTrick?.stances)
+					? randomTrick.stances
+					: ["regular"];
+
+				const randomStance =
+					stances[Math.floor(Math.random() * stances.length)];
+
+				const normalizedStance = randomStance.toLowerCase().trim();
+
+				// identify “normal” stance values
+				const isDefaultStance =
+					normalizedStance === "regular" ||
+					normalizedStance === "normal" ||
+					normalizedStance === "default";
+
+				// don't show stance for normal/regular/default
+				const stanceLabel = isDefaultStance ? "" : `${normalizedStance} `;
+
+				setCurrentTrick(`${stanceLabel}${randomTrick.name}`);
+
+				// wait another 3 seconds to show Make/Bail
 				const resultTimeout = setTimeout(() => {
 					const landed = Math.random() < 0.6;
+
 					if (landed) {
 						setOpponentLanded(true);
 						setResult("Make!");
-						setCurrentTrick("");
 
-						// Switch to players turn
 						setTimeout(() => {
 							setTurn("player");
 						}, 1000);
 					} else {
 						setOpponentLanded(false);
 						setResult("Bailed!");
-						setCurrentTrick("");
 
-						// hand turn back to player
 						setTimeout(() => {
 							setTurn("player");
 							setIsSettingTrick(true);
@@ -93,6 +127,7 @@ export default function GameScreen() {
 
 				return () => clearTimeout(resultTimeout);
 			}, 2000);
+
 			return () => clearTimeout(setupTimeout);
 		}
 	}, [turn]);
@@ -104,17 +139,52 @@ export default function GameScreen() {
 
 	const handlePlayerResponse = (choice: string) => {
 		console.log(`Player chose ${choice}`);
-		// Player gets letter
-		if (choice === "Bail") {
-			console.log("Player gets letter!!!");
-		} else {
-			console.log("Player landed");
-		}
 
-		setResult("");
-		setTurn("opponent");
-		setIsSettingTrick(false);
-		setOpponentLanded(false);
+		const isOffense = isSettingTrick;
+		// Player gets letter
+		if (isOffense) {
+			if (choice === "Bail") {
+				// bail on offense = no letter, lose turn
+				setTurn("opponent");
+				setIsSettingTrick(false);
+				setResult(`Dang!, Back to ${opponentName}`);
+				return;
+			} else {
+				// landed on offense
+				setTurn("opponent");
+				setIsSettingTrick(false);
+				setResult("Nice");
+				return;
+			}
+		} else {
+			// Player on defense
+			if (choice === "Bail") {
+				const current = playerLetters.length;
+
+				if (current === 4) {
+					// They are upo to S-K-A-T
+					if (!opponentLanded) {
+						setResult("Last chance!");
+						return;
+					} else {
+						// second bail on "E"
+						setPlayerLetters(giveLetter(playerLetters));
+						setResult("Fatality! You Lost");
+						return;
+					}
+				}
+
+				// Regular bail on defense = give next letter
+				setPlayerLetters(giveLetter(playerLetters));
+				setResult(`You got ${SKATE[current]}`);
+			} else {
+				setResult("Nice! No letter");
+			}
+
+			// swith offense back
+			setTurn("opponent");
+			setIsSettingTrick(false);
+		}
 	};
 
 	const handleSelectTrick = (trickName: string) => {

@@ -11,23 +11,29 @@ export default function StartScreen() {
 	const [step, setStep] = useState<"difficulty" | "level">("difficulty");
 	const [difficulty, setDifficulty] = useState<string | null>(null);
 
+	const levelOptions = [
+		{ name: "Beginner", tricks: beginnerTricks },
+		{ name: "Medium", tricks: mediumTricks },
+		{ name: "Pro", tricks: proTricks },
+	];
+
 	const handleSelectDifficulty = (diff: string) => {
 		setDifficulty(diff);
 		setStep("level");
 	};
 
 	const handleSelectLevel = (level: string) => {
+		const selectedLevel = levelOptions.find(
+			(l) => l.name.toLowerCase() === level
+		);
 		router.push({
 			pathname: "/opponent",
-			params: { difficulty, level },
+			params: {
+				difficulty,
+				level: selectedLevel?.name.toLowerCase(),
+			},
 		});
 	};
-
-	const levelOptions = [
-		{ name: "Beginner", tricks: beginnerTricks },
-		{ name: "Flow", tricks: mediumTricks },
-		{ name: "Pro", tricks: proTricks },
-	];
 
 	return (
 		<View style={styles.container}>
