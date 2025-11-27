@@ -27,6 +27,7 @@ export default function PlayerSection({
 }: PlayerSectionProps) {
 	return (
 		<View style={[styles.playerSection, !active && styles.inactiveSection]}>
+			<Text style={styles.name}>Player</Text>
 			<View style={styles.lettersRow}>
 				{letters.map((letter, i) => {
 					const isActive = i < 1; // change based on progress later
@@ -78,6 +79,13 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		paddingHorizontal: 10,
 		marginBottom: 40,
+	},
+	name: {
+		color: "#fff",
+		fontWeight: "bold",
+		fontFamily: "PressStart2P",
+		fontSize: 14,
+		paddingVertical: 8,
 	},
 	buttonRow: {
 		flexDirection: "row",
