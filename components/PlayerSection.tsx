@@ -15,6 +15,7 @@ type PlayerSectionProps = {
 	active: boolean;
 	isSettingTrick: boolean;
 	onStanceSelect: (stance: string) => void;
+	currentTrick?: string;
 };
 
 export default function PlayerSection({
@@ -24,17 +25,20 @@ export default function PlayerSection({
 	onStanceSelect,
 	onPlayerResponse,
 	active,
+	currentTrick,
 }: PlayerSectionProps) {
+	const SKATE = ["S", "K", "A", "T", "E"];
 	return (
 		<View style={[styles.playerSection, !active && styles.inactiveSection]}>
 			<Text style={styles.name}>Player</Text>
 			<View style={styles.lettersRow}>
-				{letters.map((letter, i) => {
-					const isActive = i < 1; // change based on progress later
+				{Array.from({ length: 5 }).map((_, i) => {
+					const letter = letters[i] ?? SKATE[i];
+					const hasEarned = i < letters.length;
 					return (
-						<View key={i} style={[styles.tile, isActive && styles.tileActive]}>
+						<View key={i} style={styles.tile}>
 							<Text
-								style={[styles.tileText, isActive && styles.tileTextActive]}
+								style={[styles.tileText, hasEarned && styles.tileTextActive]}
 							>
 								{letter}
 							</Text>
@@ -56,6 +60,7 @@ export default function PlayerSection({
 								</TouchableOpacity>
 						  ))
 						: isSettingTrick &&
+						  (!currentTrick || currentTrick === "") &&
 						  ["Normal", "Fakie", "Nollie", "Switch"].map((stance) => (
 								<TouchableOpacity
 									key={stance}

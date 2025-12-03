@@ -94,7 +94,7 @@ export default function GameScreen() {
 
 	// Opponent AI: run when opponent is the setter
 	useEffect(() => {
-		// clear previous timers
+		// helper to clear timers
 		const clearAll = () => {
 			if (setupTimeoutRef.current) clearTimeout(setupTimeoutRef.current);
 			if (resultTimeoutRef.current) clearTimeout(resultTimeoutRef.current);
@@ -104,8 +104,8 @@ export default function GameScreen() {
 			switchTimeoutRef.current = null;
 		};
 
-		if (turn !== "opponent") {
-			// cleanup and return
+		// Run AI **only** when opponent is the active setter
+		if (turn !== "opponent" || !isSettingTrick) {
 			clearAll();
 			return;
 		}
@@ -114,14 +114,13 @@ export default function GameScreen() {
 		setResult(`${opponentName} is setting up for a...`);
 		setCurrentTrick("");
 
-		// Step 1: wait X ms then reveal trick + stance
+		// Step 1: reveal trick after delay
 		setupTimeoutRef.current = setTimeout(() => {
 			const pool = trickPool.length ? trickPool : [{ name: "Ollie" }];
 			const randomTrick = pool[
 				Math.floor(Math.random() * pool.length)
 			] as TrickObj;
 
-			// handle stances which could be string | string[] | undefined
 			const stancesArr = Array.isArray(randomTrick.stances)
 				? randomTrick.stances
 				: randomTrick.stances
@@ -141,9 +140,8 @@ export default function GameScreen() {
 
 			setCurrentTrick(`${stanceLabel}${randomTrick.name}`);
 
-			// Step 2: wait, then determine landed/bail
+			// Step 2: after a short wait decide landed or bailed
 			resultTimeoutRef.current = setTimeout(() => {
-				// difficulty tweak: easy = 0.8, medium = 0.6, hard = 0.4
 				const prob =
 					difficulty === "easy" ? 0.8 : difficulty === "hard" ? 0.4 : 0.6;
 				const landed = Math.random() < prob;
@@ -156,11 +154,15 @@ export default function GameScreen() {
 					setResult("Bailed!");
 				}
 
-				// Step 3: after a short pause, switch to player defending
+				// Step 3: switch to player — **behaviour depends on landed**
+				// - If opponent LANDED: player must defend (player is defender)
+				// - If opponent BAILED while setting: player should be allowed to SET next
 				switchTimeoutRef.current = setTimeout(() => {
-					setIsSettingTrick(false); // player now defends
+					// update BOTH states in the same tick
 					setTurn("player");
-				}, 1000);
+					setIsSettingTrick(!landed); // if opponent landed → false, else → true
+					if (!landed) setCurrentTrick(""); // clear trick immediately so buttons appear
+				}, 500); // reduce delay so buttons feel responsive
 			}, 3000);
 		}, 2000);
 
@@ -168,7 +170,7 @@ export default function GameScreen() {
 		return () => {
 			clearAll();
 		};
-	}, [turn, trickPool, opponentName, difficulty]);
+	}, [turn, trickPool, opponentName, difficulty, isSettingTrick]);
 
 	// player chooses stance (open modal)
 	const handleStance = (stance: string) => {
@@ -188,13 +190,14 @@ export default function GameScreen() {
 			if (choice === "Bail") {
 				// missed own trick: no letter, opponent becomes setter
 				setResult(`Dang! Back to ${opponentName}`);
+				// opponent will set next
 				setTurn("opponent");
-				setIsSettingTrick(true); // opponent will set next
+				setIsSettingTrick(true);
 			} else {
 				// player landed while setting => opponent must defend
 				setResult("Nice! Opponent must copy.");
-				setIsSettingTrick(false); // player no longer setter
 				setTurn("opponent"); // opponent will defend (or AI will be triggered)
+				setIsSettingTrick(false); // player no longer setter
 			}
 			// reset player's last-chance when moving on
 			setPlayerLastChance(false);
@@ -203,40 +206,37 @@ export default function GameScreen() {
 
 		// PLAYER is defending (copying opponent's trick)
 		if (!isPlayerOffense) {
+			// player is defending
 			if (choice === "Bail") {
 				const current = playerLetters.length;
 
-				// last-letter handling
 				if (current === 4) {
 					if (!playerLastChance) {
 						setResult("LAST CHANCE! Bail again = SKATE!");
 						setPlayerLastChance(true);
-						return; // allow extra chance
+						return;
 					} else {
 						setPlayerLetters((prev) => giveLetter(prev));
 						setResult("Fatality! You Lost.");
 						setPlayerLastChance(false);
-						// TODO: trigger game over UI
 						return;
 					}
 				}
 
-				// normal bail on defense -> give letter
 				setPlayerLetters((prev) => {
 					const next = giveLetter(prev);
 					setResult(`You got ${SKATE[prev.length]}`);
 					return next;
 				});
 			} else {
-				// landed while defending
 				setResult("Nice! No letter.");
+				setPlayerLastChance(false);
 			}
 
-			// after defending, switch so player becomes setter next (variant)
-			setIsSettingTrick(true);
-			setTurn("player");
-			// reset last chance if they landed
-			if (choice === "Land") setPlayerLastChance(false);
+			// ✅ Immediately give opponent their turn
+			setCurrentTrick("");
+			setTurn("opponent");
+			setIsSettingTrick(true); // opponent sets next trick
 		}
 	};
 
@@ -250,8 +250,8 @@ export default function GameScreen() {
 		// opponent setting a trick
 		if (isOpponentOffense) {
 			if (choice === "Bail") {
-				setResult("Opponent bailed. Your turn to set.");
 				setTurn("player");
+				setResult("Opponent bailed. Your turn to set.");
 				setIsSettingTrick(true);
 			} else {
 				setResult("Opponent landed. Defend!");
@@ -272,27 +272,24 @@ export default function GameScreen() {
 						setOpponentLastChance(true);
 						return;
 					} else {
-						setOpponentLetters((prev) => {
-							const next = giveLetter(prev);
-							setResult("Opponent got the E — SKATE!");
-							return next;
-						});
+						setOpponentLetters((prev) => giveLetter(prev));
+						setResult("Opponent got the E — SKATE!");
 						setOpponentLastChance(false);
 						return;
 					}
 				}
 
-				setOpponentLetters((prev) => {
-					const next = giveLetter(prev);
-					setResult(`Opponent got ${SKATE[prev.length]}`);
-					return next;
-				});
+				setOpponentLetters((prev) => giveLetter(prev));
+				setResult(`Opponent got ${SKATE[current]}`);
+				setOpponentLastChance(false);
 			} else {
 				setResult("Opponent landed. No letter!");
+				setOpponentLastChance(false);
 			}
 
-			setIsSettingTrick(true);
 			setTurn("opponent");
+			setIsSettingTrick(true);
+			return;
 		}
 	};
 
@@ -322,6 +319,7 @@ export default function GameScreen() {
 				active={turn === "player"}
 				opponentLanded={opponentLanded}
 				isSettingTrick={isSettingTrick}
+				currentTrick={currentTrick}
 				onStanceSelect={handleStance}
 				onPlayerResponse={handlePlayerResponse}
 			/>

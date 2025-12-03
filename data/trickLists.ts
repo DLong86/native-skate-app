@@ -4,7 +4,7 @@ export const beginnerTricks = [
 	{ name: "ollie one foot", stances: ["Normal"] },
 	{ name: "shuvit", stances: ["Normal", "Fakie", "Nollie"] },
 	{ name: "fs shuvit", stances: ["Normal", "Fakie", "Nollie"] },
-	{ name: "fs 180", stances: ["Normal", "Fakie", "Nollie", "Switch"] },
+	{ name: "fs 180", stances: ["Normal", "Nollie", "Switch"] },
 	{ name: "bs 180", stances: ["Normal", "Fakie", "Nollie"] },
 	{ name: "halfcab", stances: "Fakie" },
 	{ name: "bigspin", stances: ["Fakie"] },
