@@ -294,9 +294,21 @@ export default function GameScreen() {
 	};
 
 	const handleSelectTrick = (trickName: string) => {
-		setSelectedTrick(trickName);
 		setShowModal(false);
-		console.log(`Selected ${selectedStance} - ${trickName}`);
+
+		const stanceLabel =
+			selectedStance && selectedStance !== "normal" ? `${selectedStance} ` : "";
+
+		const trickString = `${stanceLabel}${trickName}`;
+
+		setCurrentTrick(trickString);
+		setSelectedTrick(trickName);
+
+		// After player sets, they need to say if they landed it or not
+		setIsSettingTrick(true);
+		setTurn("player");
+
+		setResult("Player is setting up for...");
 	};
 
 	return (
