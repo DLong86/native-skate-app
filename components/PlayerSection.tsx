@@ -49,27 +49,30 @@ export default function PlayerSection({
 
 			{active && (
 				<View style={styles.buttonRow}>
-					{opponentLanded
-						? ["Make", "Bail"].map((result) => (
-								<TouchableOpacity
-									key={result}
-									style={styles.button}
-									onPress={() => onPlayerResponse(result)}
-								>
-									<Text style={styles.buttonText}>{result}</Text>
-								</TouchableOpacity>
-						  ))
-						: isSettingTrick &&
-						  (!currentTrick || currentTrick === "") &&
-						  ["Normal", "Fakie", "Nollie", "Switch"].map((stance) => (
-								<TouchableOpacity
-									key={stance}
-									style={styles.button}
-									onPress={() => onStanceSelect(stance)}
-								>
-									<Text style={styles.buttonText}>{stance}</Text>
-								</TouchableOpacity>
-						  ))}
+					{/* Player has a trick = make / bail */}
+					{currentTrick !== "" &&
+						["Make", "Bail"].map((result) => (
+							<TouchableOpacity
+								key={result}
+								style={styles.button}
+								onPress={() => onPlayerResponse(result)}
+							>
+								<Text style={styles.buttonText}>{result}</Text>
+							</TouchableOpacity>
+						))}
+
+					{/* PLAYER IS SETTING BUT NO TRICK YET → STANCE SELECT */}
+					{isSettingTrick &&
+						currentTrick === "" &&
+						["Normal", "Fakie", "Nollie", "Switch"].map((stance) => (
+							<TouchableOpacity
+								key={stance}
+								style={styles.button}
+								onPress={() => onStanceSelect(stance)}
+							>
+								<Text style={styles.buttonText}>{stance}</Text>
+							</TouchableOpacity>
+						))}
 				</View>
 			)}
 		</View>

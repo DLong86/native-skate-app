@@ -131,14 +131,8 @@ export default function GameScreen() {
 
 			const randomStance =
 				stancesArr[Math.floor(Math.random() * stancesArr.length)] ?? "regular";
-			const normalizedStance = (randomStance ?? "regular").toLowerCase().trim();
-			const isDefaultStance =
-				normalizedStance === "regular" ||
-				normalizedStance === "normal" ||
-				normalizedStance === "default";
-			const stanceLabel = isDefaultStance ? "" : `${normalizedStance} `;
-
-			setCurrentTrick(`${stanceLabel}${randomTrick.name}`);
+			const normalisedStance = (randomStance ?? "regular").toLowerCase().trim();
+			setCurrentTrick(formatTrickDisplay(normalisedStance, randomTrick.name));
 
 			// Step 2: after a short wait decide landed or bailed
 			resultTimeoutRef.current = setTimeout(() => {
@@ -171,6 +165,25 @@ export default function GameScreen() {
 			clearAll();
 		};
 	}, [turn, trickPool, opponentName, difficulty, isSettingTrick]);
+
+	const formatTrickDisplay = (stance?: string, trickName?: string) => {
+		if (!trickName) return "";
+
+		const stanceTrim = stance?.toLowerCase().trim();
+		const trickTrim = trickName?.toLowerCase().trim();
+
+		// hide stance for normal/regular
+		if (!stanceTrim || stanceTrim === "normal" || stanceTrim === "regular") {
+			return trickTrim;
+		}
+
+		// hide "nollie" Only for nollie
+		if (stanceTrim === "nollie" && trickTrim === "nollie") {
+			return trickTrim;
+		}
+
+		return `${stanceTrim} ${trickTrim}`;
+	};
 
 	// player chooses stance (open modal)
 	const handleStance = (stance: string) => {
@@ -233,7 +246,7 @@ export default function GameScreen() {
 				setPlayerLastChance(false);
 			}
 
-			// ✅ Immediately give opponent their turn
+			// Immediately give opponent their turn
 			setCurrentTrick("");
 			setTurn("opponent");
 			setIsSettingTrick(true); // opponent sets next trick
@@ -296,19 +309,16 @@ export default function GameScreen() {
 	const handleSelectTrick = (trickName: string) => {
 		setShowModal(false);
 
-		const stanceLabel =
-			selectedStance && selectedStance !== "normal" ? `${selectedStance} ` : "";
-
-		const trickString = `${stanceLabel}${trickName}`;
+		const trickString = formatTrickDisplay(selectedStance, trickName);
 
 		setCurrentTrick(trickString);
 		setSelectedTrick(trickName);
 
-		// After player sets, they need to say if they landed it or not
-		setIsSettingTrick(true);
+		// Player is now SETTING the trick
 		setTurn("player");
+		setIsSettingTrick(true);
 
-		setResult("Player is setting up for...");
+		setResult("You are setting up for a...");
 	};
 
 	return (
